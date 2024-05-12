@@ -1,11 +1,12 @@
 
-
+from Model.Artista import Artista as Art
 class Evento:
-    def __init__(self, nombre, dia, mes, anio):
+    def __init__(self, nombre, dia, mes, anio,artista):
         self.nombre = nombre
         self.dia = dia
         self.mes = mes
         self.anio = anio
+        self.artista_eve = artista #lista de artistas
 
     def set_mes(self,mes):
         self.mes = mes
@@ -30,3 +31,5 @@ class Evento:
     def get_anio(self):
         return self.anio
 
+    def agregar_art2(self,nombre_art,codigo_art):
+        nombre_art=Art(nombre_art,codigo_art)
