@@ -10,14 +10,8 @@ class EveController:
         self.artista = [] #dicc de artistas
 
 
-    def agregar_lugar(self):
-
-        cant_lugar= {
-            "BAR",
-            "TEATRO",
-            "FILANTROPO"
-        }
-        self.lugar_evento= self.lugar_evento["clave"]
+    def agregar_lugar(self, lugar_seleccionado):
+        self.lugar_evento = lugar_seleccionado
 
     def set_num_artista(self,numero):
         self.num_artista = numero
