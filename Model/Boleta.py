@@ -1,6 +1,6 @@
 
 
-class Boletas:
+class Boleta:
     def __init__(self, aforo=0, precioPrev=0, precioGen=0, dia=0, mes=0, anio=0):
         self.aforo = aforo
         self.precioPrev = precioPrev

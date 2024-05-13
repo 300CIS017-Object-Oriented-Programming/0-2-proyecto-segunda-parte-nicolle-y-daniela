@@ -1,13 +1,20 @@
 
 from Model.Artista import Artista as Art
 class Evento:
-    def __init__(self, nombre, dia, mes, anio,artista):
+    instancia=None
+    def __init__(self, nombre, dia, mes, anio,artista,estado):
         self.nombre = nombre
         self.dia = dia
         self.mes = mes
         self.anio = anio
         self.artista_eve = artista #lista de artistas
+        self.estado_eve = estado
 
+    @classmethod
+    def obtenerInstancia(cls):
+        if not cls.instancia:
+            cls.instancia = cls()
+        return cls.instancia
     def set_mes(self,mes):
         self.mes = mes
 

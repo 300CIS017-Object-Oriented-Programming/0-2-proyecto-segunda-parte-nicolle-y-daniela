@@ -1,34 +1,41 @@
-
+from Model.Bar import Bar
+from Model.Teatro import Teatro
+from Model.Filantropico import Filantropico as Filan
 from Model.Artista import Artista as Art, Artista
 from Model.Evento import Evento as Eve
+from View.View import View
+
+import streamlit as st
 
 class EveController:
 
     def __init__(self):
-        self.lugar_evento = None #contenedor nombre evento
-        self.fecha_evento = None #lista
-        self.artista = [] #dicc de artistas
+        self.view = view
+        self.nom_even = nom_even
+        self.fecha = fecha
+        self.artista = artista #dicc de artistas
+        self.lugar_evento = lugar
+
+    def vermenu(self, ):
+        opcion=self.View.menu()
+        if opcion=='Crear Evento':
+            st.write('Crear Evento')
+            ans = st.selectbox("Elige un lugar para el evento", ("BAR", "TEATRO", "FILANTROPO"))
+            nombre = st.text_input("Nombre del evento:")
+            fecha = st.date_input("Fecha del evento:")
+            hora = st.time_input("Hora del evento:")
+            if ans=='BAR':
+                self.lugar_evento = Bar(self,1, 2, nombre)
+            elif ans=='TEATRO':
+                self.lugar_evento = Teatro(self,1, 2, nombre)
+            elif ans=='FILANTROPO':
+                self.lugar_evento = Filan(self,1,nombre)
+            if st.button("Enviar Evento"):
+                self.guardar_mostrar_evento()
 
 
-    def agregar_lugar(self, lugar_seleccionado):
-        self.lugar_evento = lugar_seleccionado
-
-    def set_num_artista(self,numero):
-        self.num_artista = numero
-
-    def get_num_artista(self):
-        return self.num_artista
-
-    def encontrar_art(self, nombrex):
-        a=0
-        for artista in self.artistas:
-            if artista.nombre_art == nombrex:
-                codigo_art= artista.cod_art
-                Eve.agregar_art2(nombrex,codigo_art)
-                a=1
-        return a
-
-    def agregar_artista(self,cod_Art, nombre_arte=None):
-        nombre=Artista(self,nombre_arte,cod_Art)
-        self.artista.append(nombre)
+    def guardar_mostrar_evento(self):
+        print(self.lugar_evento)
+        st.write('Evento agregado con exito')
+    
 
