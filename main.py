@@ -1,10 +1,10 @@
 import streamlit as st
-from event_controller import ComedyEventManager
-from event_view import EventView
+from controller import Controlador
+from view import EventView
 
 def main():
     st.title("Gestor de Eventos de Comedia")
-    manager = ComedyEventManager()
+    manager = Controlador()
     view = EventView(manager)
     view.run()
 
