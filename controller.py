@@ -1,19 +1,22 @@
 import streamlit as st
-from model import Evento, Bar, Teatro, Filantropo,Artista
-
+from model import Evento, Bar, Teatro, Filantropo,Artista,Usuario
+from fpdf import FPDF
 class Controlador:
-    def __init__(self):
-        if 'events' not in st.session_state:
+    if 'events' not in st.session_state:
             st.session_state['events'] = []
-        if 'artistas_por_evento' not in st.session_state:
-            st.session_state['artistas_por_evento'] = {}
-        if 'logged_in' not in st.session_state:
-            st.session_state['logged_in'] = False
+    if 'artistas_por_evento' not in st.session_state:
+        st.session_state['artistas_por_evento'] = {}
+    if 'logged_in' not in st.session_state:
+        st.session_state['logged_in'] = False
+    if 'temp_artistas' not in st.session_state:
+        st.session_state['temp_artistas'] = []
+    if 'aforo' not in st.session_state:
+            st.session_state['aforo'] = 0
 
     def iniciar_sesion(self, username, password):
         # Aquí puedes agregar la lógica para validar el usuario
         # Por ahora, solo validaremos con un usuario y contraseña fijo
-        if username == 'admin' and password == 'password':
+        if username == 'admin' and password == '1':
             st.session_state['logged_in'] = True
             return True
         return False
@@ -49,38 +52,36 @@ class Controlador:
         a=False
         evento = self.obtener_evento(nombre)
         if evento and evento.estado!="Realizado":
-            evento.artista = datos_modificados.get('artista', evento.artista)
             evento.estado = datos_modificados.get('estado', evento.estado)
-            evento.fecha = datos_modificados.get('fecha', evento.fecha)
             a=True
         return evento,a
 
-    def crear_evento_bar(self, nombre, fecha, hora_apertura, hora_del_show, artista, estado):
-        evento = Bar(nombre, fecha, hora_apertura, hora_del_show, artista, estado)
+    def crear_evento_bar(self, nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo,precio_gen,precio_prev, fecha_gen, fecha_prev):
+        evento = Bar(nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo,precio_gen,precio_prev, fecha_gen, fecha_prev)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
     
-    def crear_evento_teatro(self, nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado):
-        evento = Teatro(nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado)
+    def crear_evento_teatro(self, nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev):
+        evento = Teatro(nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo,precio_gen,precio_prev, fecha_gen, fecha_prev)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
     
-    def crear_evento_filantropo(self, nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado):
-        evento = Filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado)
+    def crear_evento_filantropo(self, nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo):
+        evento = Filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
 
-    def creacion_general(self, opcion, nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, sponsors=[]):
+    def creacion_general(self, opcion, nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev,sponsors=[]):
         a=None
         if opcion == "Evento en Bar":
-            a= self.crear_evento_bar(nombre, fecha, hora_apertura, hora_del_show, artista, estado)
+            a= self.crear_evento_bar(nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev)
         elif opcion == "Evento en Teatro":
-            a= self.crear_evento_teatro(nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado)
+            a= self.crear_evento_teatro(nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev)
         elif opcion == "Evento Filantrópico":
-            a= self.crear_evento_filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado)
+            a= self.crear_evento_filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo)
         return a
 
     def cambiar_estado_evento(self, nombre, nuevo_estado):
@@ -103,25 +104,84 @@ class Controlador:
         return x
     
     def verificar_artistas_por_evento(self, nombre, artistas):
-        a=True
+        a = True
         artistas_evento = self.artistas_por_evento.get(nombre, [])  # Obtener la lista de artistas para el evento
+        artistas_nombres = [a.nombre if isinstance(a, Artista) else a for a in artistas_evento]  # Convertir objetos Artista a sus nombres
         for artista in artistas:
-            if artista in artistas_evento:
-                a=False
+            if artista in artistas_nombres:
+                a = False
         return a
 
-    def crear_artista(self,nombre,id_art):
-        artista = Artista(nombre, id_art)
-        return artista
+    def crear_artista(self, nombre, id_art):
+        return Artista(nombre, id_art)
     
     def obtener_lista_artistas(self, nombre):
         return self.artistas_por_evento.get(nombre, set())
     
-    def agregar_artista(self, nombre_evento, artista):
-        # Verificar si ya existe el evento en el diccionario
+    def agregar_artista(self, nombre_evento, nuevo_artista):
         if nombre_evento not in self.artistas_por_evento:
-            self.artistas_por_evento[nombre_evento] = []  # Inicializar lista de artistas si es necesario
-        # Agregar el artista a la lista de artistas del evento
-        self.artistas_por_evento[nombre_evento].append(artista)
+            self.artistas_por_evento[nombre_evento] = set()
+        self.artistas_por_evento[nombre_evento].add(nuevo_artista.nombre)
+        st.session_state['temp_artistas'].append(nuevo_artista)
 
+    def crear_usuario(self,nombre,edad,correo,residencia,cant_boletas,id_compra,tipo_pago,etapa_de_compra):
+        return Usuario(nombre,edad,correo,residencia,cant_boletas,id_compra,tipo_pago,etapa_de_compra)
+    
+    def verificar_aforo(self,nombre):
+        a=True
+        evento=self.obtener_evento(nombre)
+        if st.session_state['aforo']< evento.aforo:
+            a=False
+        return a
+
+    def actualizar_aforo(self, evento, cantidad_boletas):
+        st.session_state['aforo'] += cantidad_boletas
+
+    def generar_pdf_boleta(self, usuario, evento):
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt=f"Boleta para el evento {evento.nombre}", ln=True, align='C')
+        pdf.cell(200, 10, txt=f"Nombre: {usuario.nombre}", ln=True, align='L')
+        pdf.cell(200, 10, txt=f"Correo: {usuario.correo}", ln=True, align='L')
+        pdf.cell(200, 10, txt=f"Residencia: {usuario.residencia}", ln=True, align='L')
+        pdf.cell(200, 10, txt=f"Cantidad de Boletas: {usuario.cant_boletas}", ln=True, align='L')
+        pdf.cell(200, 10, txt=f"Tipo de Pago: {usuario.tipo_pago}", ln=True, align='L')
+        pdf.cell(200, 10, txt=f"Evento: {evento.nombre}", ln=True, align='L')
+        pdf.cell(200, 10, txt=f"Fecha: {evento.fecha}", ln=True, align='L')
+        pdf.cell(200, 10, txt=f"Hora del Show: {evento.hora_del_show}", ln=True, align='L')
+        pdf_file_name = f"{usuario.nombre}_boleta.pdf"
+        pdf.output(pdf_file_name)
         
+        return pdf_file_name
+
+    def vender_boleta(self, nombre, usuario):
+        x = ""
+        total_precio = 0
+        evento = self.obtener_evento(nombre)
+        if evento:
+            verifico = self.verificar_aforo(nombre)
+            if not verifico:
+                if usuario.etapa_de_compra == "Preventa":
+                    total_precio = evento.calcula_ingreso_prev(usuario.cant_boletas, evento.precio_prev)
+                else:
+                    total_precio = evento.calcula_ingreso_gen(usuario.cant_boletas, evento.precio_gen)
+
+                self.actualizar_aforo(evento, usuario.cant_boletas)
+                boleta_pdf_file = self.generar_pdf_boleta(usuario, evento)
+                mensaje_venta = f"¡Venta completada para el evento {evento.nombre}! Precio total: {total_precio}"
+
+                if mensaje_venta:
+                    st.success(mensaje_venta)
+                    st.write("Información de la boleta:")
+                    st.download_button(
+                        label="Descargar Boleta",
+                        data=open(boleta_pdf_file, "rb").read(),  # Lee el archivo PDF como bytes
+                        file_name=f"{usuario.nombre}_boleta.pdf",  # Asigna el nombre del archivo PDF
+                        mime="application/pdf"
+                    )
+            else:
+                x = "No hay suficiente disponibilidad de aforo para la cantidad de boletas solicitadas."
+        else:
+            x = "El evento no existe."
+        return x
