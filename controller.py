@@ -68,8 +68,8 @@ class Controlador:
         self.artistas_por_evento[nombre] = set(artista)
         return evento
     
-    def crear_evento_filantropo(self, nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo):
-        evento = Filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo)
+    def crear_evento_filantropo(self, nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo,precio_prev,precio_gen, fecha_prev, fecha_gen):
+        evento = Filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo,precio_prev,precio_gen, fecha_prev, fecha_gen)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
@@ -81,7 +81,7 @@ class Controlador:
         elif opcion == "Evento en Teatro":
             a= self.crear_evento_teatro(nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev)
         elif opcion == "Evento Filantrópico":
-            a= self.crear_evento_filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo)
+            a= self.crear_evento_filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo,precio_prev,precio_gen, fecha_prev, fecha_gen)
         return a
 
     def cambiar_estado_evento(self, nombre, nuevo_estado):

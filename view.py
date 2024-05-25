@@ -62,7 +62,10 @@ class EventView:
         costo_alquiler = 0
         if tipo_evento == "Evento Filantrópico":
             sponsors = st.text_area("Patrocinadores (nombre:valor)").split(",")
-            
+            precio_gen=0
+            precio_prev=0
+            fecha_prev=0
+            fecha_gen=0
         if tipo_evento == "Evento en Teatro":
             costo_alquiler = st.number_input("Costo de Alquiler", min_value=0)
             precio_prev= st.number_input("Precio boleta preventa",min_value=1)

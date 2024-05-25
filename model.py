@@ -57,8 +57,8 @@ class Teatro(Evento):
     
 
 class Filantropo(Evento):
-    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo,patrocinadores=[]):
-        super().__init__(nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo)
+    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo,precio_prev,precio_gen, fecha_prev, fecha_gen,patrocinadores=[]):
+        super().__init__(nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo,precio_prev,precio_gen, fecha_prev, fecha_gen)
         self.patrocinadores = patrocinadores
 
     def agregar_patrocinador(self, nombre_patrocinador, valor_aportado):
