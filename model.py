@@ -1,5 +1,5 @@
 class Evento:
-    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo,artista=[], sponsors=[]):
+    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista=[], sponsors=[]):
         self.nombre = nombre
         self.fecha = fecha
         self.hora_apertura = hora_apertura
@@ -24,6 +24,7 @@ class Evento:
     def calcula_ganacia_total(self, ingreso_prev,ingreso_gen):
         ganancia_total= ingreso_gen + ingreso_prev
         return ganancia_total
+
 
 class Bar(Evento):
     def __init__(self, nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo, precio_prev, precio_gen, fecha_prev, fecha_gen):
@@ -57,8 +58,8 @@ class Teatro(Evento):
     
 
 class Filantropo(Evento):
-    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo,precio_prev,precio_gen, fecha_prev, fecha_gen,patrocinadores=[]):
-        super().__init__(nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo,precio_prev,precio_gen, fecha_prev, fecha_gen)
+    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo, precio_prev, precio_gen, fecha_prev, fecha_gen, patrocinadores=[]):
+        super().__init__(nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo, precio_prev, precio_gen, fecha_prev, fecha_gen)
         self.patrocinadores = patrocinadores
 
     def agregar_patrocinador(self, nombre_patrocinador, valor_aportado):
@@ -69,15 +70,15 @@ class Filantropo(Evento):
         return ingresos_totales
 
 class Usuario:
-    def __init__(self,nombre,edad,correo,residencia,cant_boletas,id_compra,tipo_pago,etapa_de_compra):
-        self.nombre=nombre
-        self.edad=edad
-        self.correo=correo
-        self.residencia=residencia
-        self.cant_boletas=cant_boletas
-        self.id_compra=id_compra
-        self.tipo_pago=tipo_pago
-        self.etapa_de_compra=etapa_de_compra
+    def __init__(self, nombre, edad, correo, residencia, cant_boletas, tipo_pago, etapa_de_compra, como_se_entero):
+        self.nombre = nombre
+        self.edad = edad
+        self.correo = correo
+        self.residencia = residencia
+        self.cant_boletas = cant_boletas
+        self.tipo_pago = tipo_pago
+        self.etapa_de_compra = etapa_de_compra
+        self.como_se_entero = como_se_entero
 
 class Artista:
     

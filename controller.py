@@ -1,6 +1,10 @@
 import streamlit as st
 from model import Evento, Bar, Teatro, Filantropo,Artista,Usuario
 from fpdf import FPDF
+from collections import Counter
+import pandas as pd
+from collections import Counter
+import plotly.express as px
 class Controlador:
     if 'events' not in st.session_state:
             st.session_state['events'] = []
@@ -12,6 +16,10 @@ class Controlador:
         st.session_state['temp_artistas'] = []
     if 'aforo' not in st.session_state:
             st.session_state['aforo'] = 0
+    if 'info_usu' not in st.session_state:
+        st.session_state['info_usu'] = {}
+    if 'sponsors' not in st.session_state:
+        st.session_state['sponsors'] = {}
 
     def iniciar_sesion(self, username, password):
         # Aquí puedes agregar la lógica para validar el usuario
@@ -24,7 +32,7 @@ class Controlador:
     @property
     def artistas_por_evento(self):
         return st.session_state['artistas_por_evento']
-    
+
     def obtener_nombre(self, nombre):
         a=""
         for evento in st.session_state['events']:
@@ -124,8 +132,117 @@ class Controlador:
         self.artistas_por_evento[nombre_evento].add(nuevo_artista.nombre)
         st.session_state['temp_artistas'].append(nuevo_artista)
 
-    def crear_usuario(self,nombre,edad,correo,residencia,cant_boletas,id_compra,tipo_pago,etapa_de_compra):
-        return Usuario(nombre,edad,correo,residencia,cant_boletas,id_compra,tipo_pago,etapa_de_compra)
+    def agregar_sponsor(self, nombre_evento, nombre_sponsor, aporte):
+        if nombre_evento not in st.session_state['sponsors']:
+            st.session_state['sponsors'][nombre_evento] = set()
+        info = {
+            'nombre': nombre_sponsor,
+            'aporte': aporte
+        }
+        st.session_state['sponsors'][nombre_evento].add(info)
+
+    def info_sponsor(self, nombre_evento):
+        info = {}
+
+        if nombre_evento in st.session_state['sponsors']:
+            for sponsor in st.session_state['sponsors'][nombre_evento]:
+                info[sponsor['nombre']] = sponsor['aporte']
+
+        return info
+
+    def agregar_info_usu(self, nombre_evento, usuario):
+        if nombre_evento not in st.session_state['info_usu']:
+            st.session_state['info_usu'][nombre_evento] = set()
+        st.session_state['info_usu'][nombre_evento].add(usuario)
+
+    def info(self,nombre_evento):
+        info_espe={}
+        info_compra={}
+        boletas_tot_efe= 0
+        boletas_tot_tc=0
+        boletas_tot_td=0
+        boletas_tot_tb=0
+        boletas_tot_efe_gen = 0
+        boletas_tot_tc_gen = 0
+        boletas_tot_td_gen = 0
+        boletas_tot_tb_gen = 0
+        boletas_tot_cortesia = 0
+
+        ciudades_counter = Counter()
+        edades_counter = Counter()
+        enterado_counter = Counter()
+
+        for i in st.session_state['info_usu'][nombre_evento]:
+
+            ciudades_counter[i.ciudades['ciudad']] += 1
+            edades_counter[i.edad] += 1
+            enterado_counter[i.como_se_entero['enterarse']] += 1
+
+            if i.etapa_de_compra == "Preventa":
+                if i.tipo_pago == "Efectivo":
+                    boletas_tot_efe += i.cant_boletas
+                if i.tipo_pago == "Tarjeta de Crédito":
+                    boletas_tot_tc += i.cant_boletas
+                if i.tipo_pago == "Tarjeta de Débito":
+                    boletas_tot_td += i.cant_boletas
+                if i.tipo_pago == "Transferencia Bancaria":
+                    boletas_tot_tb += i.cant_boletas
+
+            elif i.etapa_de_compra == "Regular":
+                if i.tipo_pago == "Efectivo":
+                    boletas_tot_efe_gen += i.cant_boletas
+                if i.tipo_pago == "Tarjeta de Crédito":
+                    boletas_tot_tc_gen += i.cant_boletas
+                if i.tipo_pago == "Tarjeta de Débito":
+                    boletas_tot_td_gen += i.cant_boletas
+                if i.tipo_pago == "Transferencia Bancaria":
+                    boletas_tot_tb_gen += i.cant_boletas
+
+            elif i.etapa_de_compra == "Cortesia":
+                boletas_tot_cortesia += i.cant_boletas
+        ciudad_mas_frecuente = ciudades_counter.most_common(1)[0]
+        resultados = {
+            "boletas_tot_efe": boletas_tot_efe,
+            "boletas_tot_tc": boletas_tot_tc,
+            "boletas_tot_td": boletas_tot_td,
+            "boletas_tot_tb": boletas_tot_tb,
+            "boletas_tot_efe_gen": boletas_tot_efe_gen,
+            "boletas_tot_tc_gen": boletas_tot_tc_gen,
+            "boletas_tot_td_gen": boletas_tot_td_gen,
+            "boletas_tot_tb_gen": boletas_tot_tb_gen,
+            "boletas_tot_cortesia": boletas_tot_cortesia
+        }
+
+        resultados_compra = {
+            "ciudad_mas_frecuente": {
+                "ciudad": ciudad_mas_frecuente[0],
+                "ocurrencias": ciudad_mas_frecuente[1]
+            },
+            "edades": dict(edades_counter),
+            "enterado": dict(enterado_counter)
+        }
+        info_espe = resultados
+        info_compra = resultados_compra
+
+        df_ciudades = pd.DataFrame(list(ciudades_counter.items()), columns=["Ciudad", "Cantidad"])
+        df_edades = pd.DataFrame(list(edades_counter.items()), columns=["Edad", "Cantidad"])
+        df_enterado = pd.DataFrame(list(enterado_counter.items()), columns=["Enterado", "Cantidad"])
+
+        # Crear gráficos con Plotly
+        fig_ciudades = px.bar(df_ciudades, x="Ciudad", y="Cantidad", title="Distribución de Compradores por Ciudad")
+        fig_edades = px.bar(df_edades, x="Edad", y="Cantidad", title="Distribución de Compradores por Edad")
+
+        # Exportar datos a Excel
+        with pd.ExcelWriter('reporte_compradores.xlsx', engine='xlsxwriter') as writer:
+            df_ciudades.to_excel(writer, sheet_name='Ciudades', index=False)
+            df_edades.to_excel(writer, sheet_name='Edades', index=False)
+            df_enterado.to_excel(writer, sheet_name='Enterado', index=False)
+            writer.save()
+
+        return info_espe, info_compra, fig_ciudades, fig_edades, 'reporte_compradores.xlsx'
+
+    def crear_usuario(self, nombre, edad, correo, residencia, cant_boletas, tipo_pago, etapa_de_compra, como_se_entero):
+        return Usuario(nombre, edad, correo, residencia, cant_boletas, tipo_pago, etapa_de_compra, como_se_entero)
     
     def verificar_aforo(self,nombre):
         a=True
@@ -185,3 +302,4 @@ class Controlador:
         else:
             x = "El evento no existe."
         return x
+
