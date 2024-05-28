@@ -18,7 +18,8 @@ class EventView:
         else:
             st.sidebar.title("Menú")
             menu = st.sidebar.selectbox("Seleccione una opción", ["Crear Evento", "Editar Evento", "Eliminar Evento", "Venta de Boleta", "Ver Reportes"])
-
+            if menu == "Eventos Generales":
+                self.mostrar_eventos()
             if menu == "Crear Evento":
                 self.crear_eventos()
             elif menu == "Editar Evento":
@@ -41,6 +42,16 @@ class EventView:
                 st.success("Inicio de sesión exitoso")
             else:
                 st.error("Nombre de usuario o contraseña incorrectos")
+
+    def mostrar_eventos(self):
+        st.header("EVentos Generales")
+        st.write("Ingrese Rango de fecha de los eventos")
+        hora_desde = st.time_input("Desde ", on_change=None)
+        hora_hasta = st.time_input("Hasta", on_change=None)
+        if st.button("Buscar Eventos"):
+            evento=self.manager.obtener_eventos()
+            eventos_filtrados = [eventu for eventu in evento if hora_desde <= evento.fecha <= hora_hasta]
+            #FALTA COMPLETAR
 
     def crear_eventos(self):
         st.header("Crear un nuevo evento")
@@ -182,7 +193,6 @@ class EventView:
         st.header("Reportes")
         eventos = self.manager.obtener_lista_nom_eventos()
 
-
         if eventos:
             nombre_evento = st.selectbox("Seleccione el evento de venta de boleteria", eventos)
             evento = self.manager.obtener_evento(nombre_evento)
@@ -195,33 +205,30 @@ class EventView:
             bol_total = bol_reg + bol_prev
 
             ing_prev = bol_prev * evento.precio_prev
-            ing_reg = bol_reg * evento.precio_reg
+            ing_reg = bol_reg * evento.precio_gen
             ing_total = ing_reg + ing_prev
-            #BAR
+            
             ing_tot_sin_bar = ing_total * 0.20
-            #TEATRO
-                #GANANCIAS DEL TEATRO
+            
             ing_tot_sin_teatro = ing_total * 0.93
 
-            tot_sponsors = 0
-            for a in sponsors.values():
-                tot_sponsors += a
+            tot_sponsors = sum(sponsors.values())
 
             ing_p_efe = info["boletas_tot_efe"] * evento.precio_prev
             ing_p_tc = info["boletas_tot_tc"] * evento.precio_prev
             ing_p_td = info["boletas_tot_td"] * evento.precio_prev
             ing_p_tb = info["boletas_tot_tb"] * evento.precio_prev
-            ing_r_efe = info["boletas_tot_efe_gen"] * evento.precio_reg
-            ing_r_tc = info["boletas_tot_tc_gen"] * evento.precio_reg
-            ing_r_td = info["boletas_tot_td_gen"] * evento.precio_reg
-            ing_r_tb = info["boletas_tot_tb_gen"] * evento.precio_reg
+            ing_r_efe = info["boletas_tot_efe_gen"] * evento.precio_gen
+            ing_r_tc = info["boletas_tot_tc_gen"] * evento.precio_gen
+            ing_r_td = info["boletas_tot_td_gen"] * evento.precio_gen
+            ing_r_tb = info["boletas_tot_tb_gen"] * evento.precio_gen
 
             if st.button("Ventas de boletas"):
                 st.subheader("Reporte de ventas de boletas")
-                if evento.tipo_evento == "Evento Filantrópico":
+                tipo_evento = self.manager.determinar_tipo_evento(evento)
+                if tipo_evento == 'Filantropo':
                     st.write("Se vendieron una totalidad de ", bol_total, " boletas de cortesia.")
-
-                elif evento.tipo_evento == " Evento en Teatro" or evento.tipo_evento == "Evento en Bar":
+                elif tipo_evento == 'Teatro' or tipo_evento == 'Bar':
                     st.write("Se vendieron una totalidad de ", bol_total, " boletas.")
                     st.write("Se distribuyen de la siguiente forma:")
                     st.write("BOLETAS REGULARES: ", bol_reg, " boletas, con ingresos de ", ing_reg, " pesos.")
@@ -230,8 +237,8 @@ class EventView:
 
             if st.button("Financiero"):
                 st.subheader("Reporte financiero")
-
-                if evento.tipo_evento == "Evento en Bar":
+                tipo_evento = self.manager.determinar_tipo_evento(evento)
+                if tipo_evento == 'Bar':
                     st.write("Se obtuvo un ingreso total de ", ing_total, " pesos, y un total de utilidad de ", ing_tot_sin_bar, " pesos.")
                     st.write("Se distribuyen de la siguiente forma:")
                     st.write("BOLETAS REGULARES:")
@@ -244,12 +251,10 @@ class EventView:
                     st.write("Tarjeta de credito: ", ing_p_tc, " pesos.")
                     st.write("Tarjeta de debito: ", ing_p_td, " pesos.")
                     st.write("Transferencia bancaria: ", ing_p_tb, " pesos.")
-
-                if evento.tipo_evento == " Evento en Teatro":
-                    # TEATRO COSTO ALQUILER
+                elif tipo_evento == 'Teatro':
                     ing_prev_alq_teatro = ing_tot_sin_teatro - evento.costo_alquiler
                     st.write("Se obtuvo un ingreso total de ", ing_total, " pesos, y un total de utilidad de ", ing_tot_sin_teatro, " pesos.")
-                    st.write("Se obtuvo un ingreso total descontando el alquiler de teatro del ", ing_prev_alq_teatro, "pesos")
+                    st.write("Se obtuvo un ingreso total descontando el alquiler de teatro de ", ing_prev_alq_teatro, " pesos.")
                     st.write("Se distribuyen de la siguiente forma:")
                     st.write("BOLETAS REGULARES:")
                     st.write("Efectivo: ", ing_r_efe, " pesos.")
@@ -262,7 +267,7 @@ class EventView:
                     st.write("Tarjeta de debito: ", ing_p_td, " pesos.")
                     st.write("Transferencia bancaria: ", ing_p_tb, " pesos.")
 
-                if evento.tipo_evento == "Evento Filantrópico":
+                if self.manager.determinar_tipo_evento(evento) == 'Filantropo':
                     st.write("Se obtuvo un ingreso total de ", tot_sponsors, " pesos.")
                     st.write("Se distribuyen de la siguiente forma:")
                     for nom, ap in sponsors.items():
@@ -281,8 +286,42 @@ class EventView:
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
                 st.write("La mayoría de compradores provienen de la ciudad: ",
-                         compra['ciudad_mas_frecuente']['ciudad'])
+                        compra['ciudad_mas_frecuente']['ciudad'])
                 st.write("Ocurrencias: ", compra['ciudad_mas_frecuente']['ocurrencias'])
+            
+            if st.button("Datos por Artistas"):
+                st.subheader("Reporte de Artista")
+                todos_eventos = self.manager.obtener_eventos()
+                artistass = self.manager.imprimir_artistas(todos_eventos)
+                artista_selec = st.selectbox("Seleccione un Artista",artistass)
+                nom_artista = self.manager.obtener_eventos_por_artista(artista_selec,todos_eventos)
+                if nom_artista:
+                    st.subheader(f"Eventos gestionados por {artista_selec}:")
+                    for evento in nom_artista:
+                        nombre_evento = evento.nombre
+                        fecha = evento.fecha
+                        lugar = self.manager.determinar_tipo_evento(evento)
+                        aforo= evento.aforo
+                        info1, compra1, fig_ciudades1, fig_edades1, excel_file1 = self.manager.info(nombre_evento)
+                        bol_prev1 = info1["boletas_tot_efe"] + info1["boletas_tot_tc"] + info1["boletas_tot_td"] + info1["boletas_tot_tb"]
+                        bol_reg1 = info1["boletas_tot_efe_gen"] + info1["boletas_tot_tc_gen"] + info1["boletas_tot_td_gen"] + info1["boletas_tot_tb_gen"]
+                        bol_total1 = bol_reg1 + bol_prev1
+
+                        # Calcular el porcentaje de aforo cubierto
+                        if aforo !=0:
+                            porcentaje_aforo_cubierto = (bol_total1 / aforo) * 100
+                        else:
+                            porcentaje_aforo_cubierto = 0
+
+                        st.write(f"Nombre del evento: {nombre_evento}")
+                        st.write(f"Fecha: {fecha}")
+                        st.write(f"Lugar: {lugar}")
+                        st.write(f"Cantidad de boletas vendidas: {bol_total1}")
+                        st.write(f"Porcentaje de aforo cubierto: {porcentaje_aforo_cubierto}%")
+                else:
+                    st.write(f"No se encontraron eventos gestionados por {artista_selec}.")
 
         else:
             st.warning("No hay eventos disponibles para la venta de boletas.")
+
+        

@@ -5,6 +5,9 @@ from collections import Counter
 import pandas as pd
 from collections import Counter
 import plotly.express as px
+import xlsxwriter
+import plotly.graph_objs as go
+
 class Controlador:
     if 'events' not in st.session_state:
             st.session_state['events'] = []
@@ -65,19 +68,19 @@ class Controlador:
         return evento,a
 
     def crear_evento_bar(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista):
-        evento = Bar(nombre, fecha, hora_apertura, hora_del_show, estado, precio_gen, precio_prev, fecha_gen, fecha_prev, aforo, artista)
+        evento = Bar(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
     
-    def crear_evento_teatro(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_gen, precio_prev, fecha_gen, fecha_prev, aforo, artista, costo_alquiler):
-        evento = Teatro(nombre, fecha, hora_apertura, hora_del_show, estado, precio_gen, precio_prev, fecha_gen, fecha_prev, aforo, artista, costo_alquiler)
+    def crear_evento_teatro(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista, costo_alquiler):
+        evento = Teatro(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista, costo_alquiler)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
     
-    def crear_evento_filantropo(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev,precio_gen, fecha_prev, fecha_gen, aforo, artista, sponsors):
-        evento = Filantropo(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev,precio_gen, fecha_prev, fecha_gen, aforo, artista, sponsors)
+    def crear_evento_filantropo(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista, sponsors):
+        evento = Filantropo(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista, sponsors)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
@@ -87,9 +90,9 @@ class Controlador:
         if opcion == "Evento en Bar":
             a= self.crear_evento_bar(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artistas)
         elif opcion == "Evento en Teatro":
-            a= self.crear_evento_teatro(nombre, fecha, hora_apertura, hora_del_show, estado, precio_gen, precio_prev, fecha_gen, fecha_prev, aforo, artistas, costo_alquiler)
+            a= self.crear_evento_teatro(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artistas, costo_alquiler)
         elif opcion == "Evento Filantrópico":
-            a= self.crear_evento_filantropo(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev,precio_gen, fecha_prev, fecha_gen, aforo, artistas, sponsors)
+            a= self.crear_evento_filantropo(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artistas, sponsors)
         return a
 
     def cambiar_estado_evento(self, nombre, nuevo_estado):
@@ -250,7 +253,7 @@ class Controlador:
             df_ciudades.to_excel(writer, sheet_name='Ciudades', index=False)
             df_edades.to_excel(writer, sheet_name='Edades', index=False)
             df_enterado.to_excel(writer, sheet_name='Enterado', index=False)
-            writer.save()
+            writer.close()
 
         return info_espe, info_compra, fig_ciudades, fig_edades, 'reporte_compradores.xlsx'
 
@@ -314,4 +317,38 @@ class Controlador:
         else:
             x = "El evento no existe."
         return x
-
+    
+    def determinar_tipo_evento(self,evento):
+        x=""
+        if isinstance(evento, Bar):
+            x= 'Bar'
+        elif isinstance(evento, Teatro):
+            x= 'Teatro'
+        elif isinstance(evento, Filantropo):
+            x= 'Filantropo'
+        return x
+        
+    def obtener_eventos_por_artista(self,artista, eventos):
+        eventos_artista = []
+        for evento in eventos:
+            if artista in evento.artista:
+                eventos_artista.append(evento)
+        return eventos_artista
+    
+    def imprimir_artistas(self,eventos):
+        artistas_set = set()
+        for evento in eventos:
+            artistas_evento = evento.artista
+            for artisti in artistas_evento:
+                artistas_set.add(artisti)
+        return artistas_set
+    
+    def dash_board(self,eventos):
+        data = {
+        'Tipo de Evento': [evento.tipo for evento in eventos],
+        'Ingresos Totales': [evento.ingresos_totales() for evento in eventos]
+        }
+        df = pd.DataFrame(data)
+        
+        return df
+        #FALTA COMPLETAR
