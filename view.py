@@ -1,6 +1,5 @@
 import streamlit as st
 from datetime import datetime
-import streamlit as st
 from datetime import datetime
 from model import  Evento
 from model import  Bar
@@ -17,7 +16,7 @@ class EventView:
             self.login()
         else:
             st.sidebar.title("Menú")
-            menu = st.sidebar.selectbox("Seleccione una opción", ["Crear Evento", "Editar Evento", "Eliminar Evento", "Venta de Boleta", "Ver Reportes"])
+            menu = st.sidebar.selectbox("Seleccione una opción", ["Eventos Generales","Crear Evento", "Editar Evento", "Eliminar Evento", "Venta de Boleta", "Ver Reportes"])
             if menu == "Eventos Generales":
                 self.mostrar_eventos()
             if menu == "Crear Evento":
@@ -46,12 +45,11 @@ class EventView:
     def mostrar_eventos(self):
         st.header("EVentos Generales")
         st.write("Ingrese Rango de fecha de los eventos")
-        hora_desde = st.time_input("Desde ", on_change=None)
-        hora_hasta = st.time_input("Hasta", on_change=None)
+        hora_desde = st.date_input("Desde", datetime.now())
+        hora_hasta = st.date_input("Hasta", datetime.now())
         if st.button("Buscar Eventos"):
             evento=self.manager.obtener_eventos()
-            eventos_filtrados = [eventu for eventu in evento if hora_desde <= evento.fecha <= hora_hasta]
-            #FALTA COMPLETAR
+            self.manager.dash_board(evento,hora_desde,hora_hasta)
 
     def crear_eventos(self):
         st.header("Crear un nuevo evento")

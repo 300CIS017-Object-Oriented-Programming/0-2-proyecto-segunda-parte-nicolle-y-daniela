@@ -343,12 +343,61 @@ class Controlador:
                 artistas_set.add(artisti)
         return artistas_set
     
-    def dash_board(self,eventos):
-        data = {
-        'Tipo de Evento': [evento.tipo for evento in eventos],
-        'Ingresos Totales': [evento.ingresos_totales() for evento in eventos]
-        }
-        df = pd.DataFrame(data)
+
+    def obtener_eventos_filtrados(self, eventos, fecha_inicio, fecha_fin):
+        return [evento for evento in eventos if fecha_inicio <= evento.fecha <= fecha_fin]
+
+    def dash_board(self, eventos, fecha_inicio, fecha_fin):
+        eventos_filtrados = self.obtener_eventos_filtrados(eventos, fecha_inicio, fecha_fin)
         
-        return df
-        #FALTA COMPLETAR
+        tipo_evento_list = []
+        ingresos_totales_list = []
+
+        for evento in eventos_filtrados:
+            tipo_evento = self.determinar_tipo_evento(evento)
+            info_espe, info_compra, fig_ciudades, fig_edades, excel_file = self.info(evento.nombre)
+
+            boletas_tot_efe = info_espe["boletas_tot_efe"]
+            boletas_tot_tc = info_espe["boletas_tot_tc"]
+            boletas_tot_td = info_espe["boletas_tot_td"]
+            boletas_tot_tb = info_espe["boletas_tot_tb"]
+            boletas_tot_efe_gen = info_espe["boletas_tot_efe_gen"]
+            boletas_tot_tc_gen = info_espe["boletas_tot_tc_gen"]
+            boletas_tot_td_gen = info_espe["boletas_tot_td_gen"]
+            boletas_tot_tb_gen = info_espe["boletas_tot_tb_gen"]
+
+            precio_prev = evento.precio_prev
+            precio_gen = evento.precio_gen
+
+            ing_prev = boletas_tot_efe * precio_prev + boletas_tot_tc * precio_prev + boletas_tot_td * precio_prev + boletas_tot_tb * precio_prev
+            ing_reg = boletas_tot_efe_gen * precio_gen + boletas_tot_tc_gen * precio_gen + boletas_tot_td_gen * precio_gen + boletas_tot_tb_gen * precio_gen
+            ingresos_totales = ing_prev + ing_reg
+
+            tipo_evento_list.append(tipo_evento)
+            ingresos_totales_list.append(ingresos_totales)
+
+        data = {
+            'Tipo de Evento': tipo_evento_list,
+            'Ingresos Totales': ingresos_totales_list
+        }
+
+        df = pd.DataFrame(data)
+
+        # Gráfico de cantidad de eventos por tipo
+        fig1 = px.histogram(df, x='Tipo de Evento', title='Cantidad de Eventos por Tipo')
+
+        # Gráfico de ingresos totales por evento
+        fig2 = px.bar(df, x='Tipo de Evento', y='Ingresos Totales', title='Ingresos Totales por Tipo de Evento')
+
+        # Crear el dashboard con ambos gráficos
+        dashboard = go.Figure()
+        dashboard.add_trace(fig1.data[0])
+        dashboard.add_trace(fig2.data[0])
+
+        # Personalizar diseño del dashboard
+        dashboard.update_layout(title='Dashboard - Gestión de Eventos',
+                                xaxis_title='Tipo de Evento',
+                                yaxis_title='Cantidad / Ingresos Totales')
+
+        # Mostrar el dashboard
+        dashboard.show()
