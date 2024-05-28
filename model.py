@@ -1,5 +1,5 @@
 class Evento:
-    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista=[], sponsors=[]):
+    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista=[], sponsors={}):
         self.nombre = nombre
         self.fecha = fecha
         self.hora_apertura = hora_apertura
@@ -18,7 +18,7 @@ class Evento:
         return ingreso_prev_tot
     
     def calcula_ingreso_gen(self,numero_boletas,precio_gen):
-        ingreso_prev_tot = numero_boletas*precio_gen
+        ingreso_prev_tot = numero_boletas * precio_gen
         return ingreso_prev_tot
     
     def calcula_ganacia_total(self, ingreso_prev,ingreso_gen):
@@ -27,8 +27,8 @@ class Evento:
 
 
 class Bar(Evento):
-    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo, precio_prev, precio_gen, fecha_prev, fecha_gen):
-        super().__init__(nombre, fecha, hora_apertura, hora_del_show, artista,estado,aforo,precio_prev,precio_gen, fecha_prev, fecha_gen)
+    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista):
+        super().__init__(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista)
 
     def calcular_ingresos_artista(self, ganancia_total):
         ingresos_totales = ganancia_total * 0,20  # Utilidad del 20%
@@ -39,8 +39,8 @@ class Bar(Evento):
         return ingresos_tot
 
 class Teatro(Evento):
-    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler,estado,aforo,precio_prev,precio_gen, fecha_prev, fecha_gen):
-        super().__init__(nombre, fecha, hora_apertura, hora_del_show, artista,costo_alquiler,estado,aforo,precio_prev,precio_gen, fecha_prev, fecha_gen)
+    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista, costo_alquiler):
+        super().__init__(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista, costo_alquiler)
         self.costo_alquiler = costo_alquiler
 
     def calcular_ingresos_artista_neto(self, ganancia_total):
@@ -58,8 +58,8 @@ class Teatro(Evento):
     
 
 class Filantropo(Evento):
-    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo, precio_prev, precio_gen, fecha_prev, fecha_gen, patrocinadores=[]):
-        super().__init__(nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo, precio_prev, precio_gen, fecha_prev, fecha_gen)
+    def __init__(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista, patrocinadores):
+        super().__init__(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista, patrocinadores)
         self.patrocinadores = patrocinadores
 
     def agregar_patrocinador(self, nombre_patrocinador, valor_aportado):

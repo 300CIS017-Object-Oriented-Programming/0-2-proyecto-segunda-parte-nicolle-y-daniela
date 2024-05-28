@@ -46,8 +46,8 @@ class EventView:
         st.header("Crear un nuevo evento")
         nombre = st.text_input("Nombre del Evento")
         fecha = st.date_input("Fecha del Evento", datetime.now())
-        hora_apertura = st.time_input("Hora de Apertura de Puertas", datetime.now().time())
-        hora_del_show = st.time_input("Hora del Show", datetime.now().time())
+        hora_apertura = st.time_input("Hora de Apertura de Puertas", on_change=None)
+        hora_del_show = st.time_input("Hora del Show", on_change=None)
         aforo = st.number_input("Aforo del evento", min_value=1)
         nuevo_artista = st.text_input("Nombre del nuevo artista")
         if st.button("Añadir Artista") and nuevo_artista:
@@ -55,14 +55,21 @@ class EventView:
             artista = self.manager.crear_artista(nuevo_artista, id_art)
             st.session_state['temp_artistas'].append(artista)
             st.success(f"Artista '{nuevo_artista}' añadido exitosamente")
+            artistas=[]
+            if nuevo_artista not in artistas:
+                artistas.append(nuevo_artista)
+
 
         tipo_evento = st.selectbox("Tipo de Evento", ["Evento en Bar", "Evento en Teatro", "Evento Filantrópico"])
         estado = st.selectbox("Estado del Evento", ["Por Realizar", "Realizado", "Cancelado", "Aplazado", "Cerrado"])
         costo_alquiler = 0
         if tipo_evento == "Evento Filantrópico":
+            sponsors_tmp = {}
             sponsor = st.text_input("Patrocinador")
             aporte = st.number_input("Aporte economico", min_value=1)
             if st.button("Añadir patrocinador") and sponsor and aporte:
+                if sponsor not in sponsors_tmp:
+                    sponsors_tmp[sponsor] = aporte
                 self.manager.agregar_sponsor(nombre, sponsor, aporte)
                 st.success(f"Patrocinador '{sponsor}' añadido exitosamente")
             precio_gen=0
@@ -85,7 +92,7 @@ class EventView:
 
         if st.button("Crear Evento"):
             artistas = [artista.nombre for artista in st.session_state['temp_artistas']]
-            evento = self.manager.creacion_general(tipo_evento, nombre, fecha, hora_apertura, hora_del_show, artistas, costo_alquiler, estado, sponsors, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev)
+            evento = self.manager.creacion_general(tipo_evento, nombre, fecha, hora_apertura, hora_del_show, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev, artistas, sponsors)
             if evento:
                 st.success(f"Evento '{evento.nombre}' creado exitosamente")
                 st.session_state['temp_artistas'] = []
@@ -164,7 +171,7 @@ class EventView:
             como_se_entero = st.selectbox("¿Cómo se enteró del evento?", ["Redes sociales", "Por un familiar o amigo", "Carteles publicitarios", "Otro"])
 
             if st.button("Comprar Boletas"):
-                usuario = self.manager.crear_usuario(nombre, edad, correo, residencia, cant_boletas, tipo_pago,como_se_entero,etapa_de_compra)
+                usuario = self.manager.crear_usuario(nombre, edad, correo, residencia, cant_boletas, tipo_pago, etapa_de_compra, como_se_entero)
                 self.manager.agregar_info_usu(nombre_evento, usuario)
                 mensaje_venta = self.manager.vender_boleta(nombre_evento, usuario)
                 st.success(mensaje_venta)

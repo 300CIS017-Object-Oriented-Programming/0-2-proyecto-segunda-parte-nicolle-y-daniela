@@ -64,32 +64,32 @@ class Controlador:
             a=True
         return evento,a
 
-    def crear_evento_bar(self, nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo,precio_gen,precio_prev, fecha_gen, fecha_prev):
-        evento = Bar(nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo,precio_gen,precio_prev, fecha_gen, fecha_prev)
+    def crear_evento_bar(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artista):
+        evento = Bar(nombre, fecha, hora_apertura, hora_del_show, estado, precio_gen, precio_prev, fecha_gen, fecha_prev, aforo, artista)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
     
-    def crear_evento_teatro(self, nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev):
-        evento = Teatro(nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo,precio_gen,precio_prev, fecha_gen, fecha_prev)
+    def crear_evento_teatro(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_gen, precio_prev, fecha_gen, fecha_prev, aforo, artista, costo_alquiler):
+        evento = Teatro(nombre, fecha, hora_apertura, hora_del_show, estado, precio_gen, precio_prev, fecha_gen, fecha_prev, aforo, artista, costo_alquiler)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
     
-    def crear_evento_filantropo(self, nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo,precio_prev,precio_gen, fecha_prev, fecha_gen):
-        evento = Filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo,precio_prev,precio_gen, fecha_prev, fecha_gen)
+    def crear_evento_filantropo(self, nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev,precio_gen, fecha_prev, fecha_gen, aforo, artista, sponsors):
+        evento = Filantropo(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev,precio_gen, fecha_prev, fecha_gen, aforo, artista, sponsors)
         st.session_state['events'].append(evento)
         self.artistas_por_evento[nombre] = set(artista)
         return evento
 
-    def creacion_general(self, opcion, nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev,sponsors=[]):
+    def creacion_general(self, opcion, nombre, fecha, hora_apertura, hora_del_show, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev, artistas=[], sponsors={}):
         a=None
         if opcion == "Evento en Bar":
-            a= self.crear_evento_bar(nombre, fecha, hora_apertura, hora_del_show, artista, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev)
+            a= self.crear_evento_bar(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev, precio_gen, fecha_prev, fecha_gen, aforo, artistas)
         elif opcion == "Evento en Teatro":
-            a= self.crear_evento_teatro(nombre, fecha, hora_apertura, hora_del_show, artista, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev)
+            a= self.crear_evento_teatro(nombre, fecha, hora_apertura, hora_del_show, estado, precio_gen, precio_prev, fecha_gen, fecha_prev, aforo, artistas, costo_alquiler)
         elif opcion == "Evento Filantrópico":
-            a= self.crear_evento_filantropo(nombre, fecha, hora_apertura, hora_del_show, artista, sponsors, estado, aforo,precio_prev,precio_gen, fecha_prev, fecha_gen)
+            a= self.crear_evento_filantropo(nombre, fecha, hora_apertura, hora_del_show, estado, precio_prev,precio_gen, fecha_prev, fecha_gen, aforo, artistas, sponsors)
         return a
 
     def cambiar_estado_evento(self, nombre, nuevo_estado):
@@ -172,11 +172,15 @@ class Controlador:
         edades_counter = Counter()
         enterado_counter = Counter()
 
+        ciudades = []
+        edades = []
+        enteradas = []
+
         for i in st.session_state['info_usu'][nombre_evento]:
 
-            ciudades_counter[i.ciudades['ciudad']] += 1
-            edades_counter[i.edad] += 1
-            enterado_counter[i.como_se_entero['enterarse']] += 1
+            ciudades.append(i.residencia)
+            edades.append(i.edad)
+            enteradas.append(i.como_se_entero)
 
             if i.etapa_de_compra == "Preventa":
                 if i.tipo_pago == "Efectivo":
@@ -200,6 +204,15 @@ class Controlador:
 
             elif i.etapa_de_compra == "Cortesia":
                 boletas_tot_cortesia += i.cant_boletas
+
+        for ciu in ciudades:
+            ciudades_counter[ciu] += 1
+
+        for eda in edades:
+            edades_counter[eda] += 1
+
+        for ent in enteradas:
+            enterado_counter[ent] += 1
         ciudad_mas_frecuente = ciudades_counter.most_common(1)[0]
         resultados = {
             "boletas_tot_efe": boletas_tot_efe,
@@ -274,7 +287,6 @@ class Controlador:
 
     def vender_boleta(self, nombre, usuario):
         x = ""
-        total_precio = 0
         evento = self.obtener_evento(nombre)
         if evento:
             verifico = self.verificar_aforo(nombre)
