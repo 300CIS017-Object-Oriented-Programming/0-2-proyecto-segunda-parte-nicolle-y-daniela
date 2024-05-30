@@ -136,12 +136,15 @@ class Controlador:
         st.session_state['temp_artistas'].append(nuevo_artista)
 
     def agregar_sponsor(self, nombre_evento, nombre_sponsor, aporte):
+        if 'sponsors' not in st.session_state:
+            st.session_state['sponsors'] = {}
+
         if nombre_evento not in st.session_state['sponsors']:
             st.session_state['sponsors'][nombre_evento] = set()
-        info = {
-            'nombre': nombre_sponsor,
-            'aporte': aporte
-        }
+
+        # Convert the dictionary to a tuple of tuples
+        info = tuple(sorted({'nombre': nombre_sponsor, 'aporte': aporte}.items()))
+
         st.session_state['sponsors'][nombre_evento].add(info)
 
     def info_sponsor(self, nombre_evento):
@@ -149,7 +152,11 @@ class Controlador:
 
         if nombre_evento in st.session_state['sponsors']:
             for sponsor in st.session_state['sponsors'][nombre_evento]:
-                info[sponsor['nombre']] = sponsor['aporte']
+                print("Sponsor dictionary:", sponsor)  # Add this line for debugging
+                if 'nombre' in sponsor and 'aporte' in sponsor:
+                    info[sponsor['nombre']] = sponsor['aporte']
+                else:
+                    print("Missing keys in sponsor dictionary:", sponsor)  # Add this line for debugging
 
         return info
 
@@ -158,13 +165,20 @@ class Controlador:
             st.session_state['info_usu'][nombre_evento] = set()
         st.session_state['info_usu'][nombre_evento].add(usuario)
 
-    def info(self,nombre_evento):
-        info_espe={}
-        info_compra={}
-        boletas_tot_efe= 0
-        boletas_tot_tc=0
-        boletas_tot_td=0
-        boletas_tot_tb=0
+    def info(self, nombre_evento):
+    # Check if 'info_usu' and the event name key exists in the session state
+        if 'info_usu' not in st.session_state:
+            st.session_state['info_usu'] = {}
+
+        if nombre_evento not in st.session_state['info_usu']:
+            st.session_state['info_usu'][nombre_evento] = []
+
+        info_espe = {}
+        info_compra = {}
+        boletas_tot_efe = 0
+        boletas_tot_tc = 0
+        boletas_tot_td = 0
+        boletas_tot_tb = 0
         boletas_tot_efe_gen = 0
         boletas_tot_tc_gen = 0
         boletas_tot_td_gen = 0
@@ -180,7 +194,6 @@ class Controlador:
         enteradas = []
 
         for i in st.session_state['info_usu'][nombre_evento]:
-
             ciudades.append(i.residencia)
             edades.append(i.edad)
             enteradas.append(i.como_se_entero)
@@ -216,7 +229,8 @@ class Controlador:
 
         for ent in enteradas:
             enterado_counter[ent] += 1
-        ciudad_mas_frecuente = ciudades_counter.most_common(1)[0]
+
+        ciudad_mas_frecuente = ciudades_counter.most_common(1)[0] if ciudades_counter else ("None", 0)
         resultados = {
             "boletas_tot_efe": boletas_tot_efe,
             "boletas_tot_tc": boletas_tot_tc,
@@ -249,13 +263,13 @@ class Controlador:
         fig_edades = px.bar(df_edades, x="Edad", y="Cantidad", title="Distribución de Compradores por Edad")
 
         # Exportar datos a Excel
-        with pd.ExcelWriter('reporte_compradores.xlsx', engine='xlsxwriter') as writer:
+        excel_file = 'reporte_compradores.xlsx'
+        with pd.ExcelWriter(excel_file, engine='xlsxwriter') as writer:
             df_ciudades.to_excel(writer, sheet_name='Ciudades', index=False)
             df_edades.to_excel(writer, sheet_name='Edades', index=False)
             df_enterado.to_excel(writer, sheet_name='Enterado', index=False)
-            writer.close()
 
-        return info_espe, info_compra, fig_ciudades, fig_edades, 'reporte_compradores.xlsx'
+        return info_espe, info_compra, fig_ciudades, fig_edades, excel_file
 
     def crear_usuario(self, nombre, edad, correo, residencia, cant_boletas, tipo_pago, etapa_de_compra, como_se_entero):
         return Usuario(nombre, edad, correo, residencia, cant_boletas, tipo_pago, etapa_de_compra, como_se_entero)
@@ -357,20 +371,20 @@ class Controlador:
             tipo_evento = self.determinar_tipo_evento(evento)
             info_espe, info_compra, fig_ciudades, fig_edades, excel_file = self.info(evento.nombre)
 
-            boletas_tot_efe = info_espe["boletas_tot_efe"]
-            boletas_tot_tc = info_espe["boletas_tot_tc"]
-            boletas_tot_td = info_espe["boletas_tot_td"]
-            boletas_tot_tb = info_espe["boletas_tot_tb"]
-            boletas_tot_efe_gen = info_espe["boletas_tot_efe_gen"]
-            boletas_tot_tc_gen = info_espe["boletas_tot_tc_gen"]
-            boletas_tot_td_gen = info_espe["boletas_tot_td_gen"]
-            boletas_tot_tb_gen = info_espe["boletas_tot_tb_gen"]
+            boletas_tot_efe = info_espe.get("boletas_tot_efe", 0)
+            boletas_tot_tc = info_espe.get("boletas_tot_tc", 0)
+            boletas_tot_td = info_espe.get("boletas_tot_td", 0)
+            boletas_tot_tb = info_espe.get("boletas_tot_tb", 0)
+            boletas_tot_efe_gen = info_espe.get("boletas_tot_efe_gen", 0)
+            boletas_tot_tc_gen = info_espe.get("boletas_tot_tc_gen", 0)
+            boletas_tot_td_gen = info_espe.get("boletas_tot_td_gen", 0)
+            boletas_tot_tb_gen = info_espe.get("boletas_tot_tb_gen", 0)
 
             precio_prev = evento.precio_prev
             precio_gen = evento.precio_gen
 
-            ing_prev = boletas_tot_efe * precio_prev + boletas_tot_tc * precio_prev + boletas_tot_td * precio_prev + boletas_tot_tb * precio_prev
-            ing_reg = boletas_tot_efe_gen * precio_gen + boletas_tot_tc_gen * precio_gen + boletas_tot_td_gen * precio_gen + boletas_tot_tb_gen * precio_gen
+            ing_prev = (boletas_tot_efe + boletas_tot_tc + boletas_tot_td + boletas_tot_tb) * precio_prev
+            ing_reg = (boletas_tot_efe_gen + boletas_tot_tc_gen + boletas_tot_td_gen + boletas_tot_tb_gen) * precio_gen
             ingresos_totales = ing_prev + ing_reg
 
             tipo_evento_list.append(tipo_evento)
@@ -390,9 +404,7 @@ class Controlador:
         fig2 = px.bar(df, x='Tipo de Evento', y='Ingresos Totales', title='Ingresos Totales por Tipo de Evento')
 
         # Crear el dashboard con ambos gráficos
-        dashboard = go.Figure()
-        dashboard.add_trace(fig1.data[0])
-        dashboard.add_trace(fig2.data[0])
+        dashboard = go.Figure(data=fig1.data + fig2.data)
 
         # Personalizar diseño del dashboard
         dashboard.update_layout(title='Dashboard - Gestión de Eventos',
@@ -400,4 +412,4 @@ class Controlador:
                                 yaxis_title='Cantidad / Ingresos Totales')
 
         # Mostrar el dashboard
-        dashboard.show()
+        st.plotly_chart(dashboard)

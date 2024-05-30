@@ -43,13 +43,13 @@ class EventView:
                 st.error("Nombre de usuario o contraseña incorrectos")
 
     def mostrar_eventos(self):
-        st.header("EVentos Generales")
+        st.header("Eventos Generales")
         st.write("Ingrese Rango de fecha de los eventos")
         hora_desde = st.date_input("Desde", datetime.now())
         hora_hasta = st.date_input("Hasta", datetime.now())
         if st.button("Buscar Eventos"):
-            evento=self.manager.obtener_eventos()
-            self.manager.dash_board(evento,hora_desde,hora_hasta)
+            eventos = self.manager.obtener_eventos()
+            self.manager.dash_board(eventos, hora_desde, hora_hasta)
 
     def crear_eventos(self):
         st.header("Crear un nuevo evento")
@@ -72,14 +72,15 @@ class EventView:
         tipo_evento = st.selectbox("Tipo de Evento", ["Evento en Bar", "Evento en Teatro", "Evento Filantrópico"])
         estado = st.selectbox("Estado del Evento", ["Por Realizar", "Realizado", "Cancelado", "Aplazado", "Cerrado"])
         costo_alquiler = 0
+        sponsors_tmp = {}
+        sponsort = {}
         if tipo_evento == "Evento Filantrópico":
-            sponsors_tmp = {}
             sponsor = st.text_input("Patrocinador")
             aporte = st.number_input("Aporte economico", min_value=1)
             if st.button("Añadir patrocinador") and sponsor and aporte:
                 if sponsor not in sponsors_tmp:
                     sponsors_tmp[sponsor] = aporte
-                self.manager.agregar_sponsor(nombre, sponsor, aporte)
+                sponsort=self.manager.agregar_sponsor(nombre, sponsor, aporte)
                 st.success(f"Patrocinador '{sponsor}' añadido exitosamente")
             precio_gen=0
             precio_prev=0
@@ -101,7 +102,7 @@ class EventView:
 
         if st.button("Crear Evento"):
             artistas = [artista.nombre for artista in st.session_state['temp_artistas']]
-            evento = self.manager.creacion_general(tipo_evento, nombre, fecha, hora_apertura, hora_del_show, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev, artistas, sponsors)
+            evento = self.manager.creacion_general(tipo_evento, nombre, fecha, hora_apertura, hora_del_show, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev, artistas, sponsort)
             if evento:
                 st.success(f"Evento '{evento.nombre}' creado exitosamente")
                 st.session_state['temp_artistas'] = []
