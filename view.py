@@ -7,10 +7,13 @@ from model import  Teatro
 from model import  Filantropo
 from model import Artista
 
+# Clase que maneja la vista
 class EventView:
+    # Constructor
     def __init__(self, manager):
         self.manager = manager
 
+    # Método que ejecuta toda la vista
     def run(self):
         if not st.session_state['logged_in']:
             self.login()
@@ -32,6 +35,7 @@ class EventView:
             if st.sidebar.button("Cerrar sesión"):
                 st.session_state['logged_in'] = False
 
+    # Método inicio de sesion
     def login(self):
         st.header("Inicio de Sesión")
         username = st.text_input("Nombre de Usuario")
@@ -42,6 +46,7 @@ class EventView:
             else:
                 st.error("Nombre de usuario o contraseña incorrectos")
 
+    # Método que permite filtrar los eventos por fecha
     def mostrar_eventos(self):
         st.header("Eventos Generales")
         st.write("Ingrese Rango de fecha de los eventos")
@@ -51,6 +56,7 @@ class EventView:
             eventos = self.manager.obtener_eventos()
             self.manager.dash_board(eventos, hora_desde, hora_hasta)
 
+    # Método de crear evento
     def crear_eventos(self):
         st.header("Crear un nuevo evento")
         nombre = st.text_input("Nombre del Evento")
@@ -68,13 +74,12 @@ class EventView:
             if nuevo_artista not in artistas:
                 artistas.append(nuevo_artista)
 
-
         tipo_evento = st.selectbox("Tipo de Evento", ["Evento en Bar", "Evento en Teatro", "Evento Filantrópico"])
         estado = st.selectbox("Estado del Evento", ["Por Realizar", "Realizado", "Cancelado", "Aplazado", "Cerrado"])
         costo_alquiler = 0
         sponsors_tmp = {}
         sponsort = {}
-        if tipo_evento == "Evento Filantrópico":
+        if tipo_evento == "Evento Filantrópico": # Para crear tipo filantropico
             sponsor = st.text_input("Patrocinador")
             aporte = st.number_input("Aporte economico", min_value=1)
             if st.button("Añadir patrocinador") and sponsor and aporte:
@@ -82,24 +87,26 @@ class EventView:
                     sponsors_tmp[sponsor] = aporte
                 sponsort=self.manager.agregar_sponsor(nombre, sponsor, aporte)
                 st.success(f"Patrocinador '{sponsor}' añadido exitosamente")
+            # inicializa los datos que no necesita en 0
             precio_gen=0
             precio_prev=0
             fecha_prev=0
             fecha_gen=0
-        if tipo_evento == "Evento en Teatro":
+        if tipo_evento == "Evento en Teatro": # Para crear tipo teatro
             sponsors = None
             costo_alquiler = st.number_input("Costo de Alquiler", min_value=0)
             precio_prev= st.number_input("Precio boleta preventa",min_value=1)
             precio_gen= st.number_input("Precio boleta normal",min_value=1)
             fecha_prev= st.date_input("Fecha maxima de preventa", datetime.now())
             fecha_gen= st.date_input("Fecha maxima de venta de boleta general", datetime.now())
-        if tipo_evento == "Evento en Bar":
+        if tipo_evento == "Evento en Bar": # Para crear tipo bar
             sponsors=None
             precio_prev= st.number_input("Precio boleta preventa",min_value=1)
             precio_gen= st.number_input("Precio boleta normal",min_value=1)
             fecha_prev= st.date_input("Fecha maxima de preventa", datetime.now())
             fecha_gen= st.date_input("Fecha maxima de venta de boleta general", datetime.now())
 
+        # Crea el evento y da un mensaje de exito
         if st.button("Crear Evento"):
             artistas = [artista.nombre for artista in st.session_state['temp_artistas']]
             evento = self.manager.creacion_general(tipo_evento, nombre, fecha, hora_apertura, hora_del_show, costo_alquiler, estado, aforo, precio_gen, precio_prev, fecha_gen, fecha_prev, artistas, sponsort)
@@ -107,6 +114,7 @@ class EventView:
                 st.success(f"Evento '{evento.nombre}' creado exitosamente")
                 st.session_state['temp_artistas'] = []
 
+    # Método para cambiar el estado del evento
     def editar_eventos(self):
         st.header("Editar un evento")
         eventos = self.manager.obtener_lista_nom_eventos()
@@ -135,6 +143,8 @@ class EventView:
                             st.success(f"Evento '{evento_modificado.nombre}' actualizado exitosamente")
                         else:
                             st.error("Error al actualizar el evento")
+
+                    # Mensajes en pantalla
                 else:
                     st.error("No se puede modificar un evento ya realizado.")
             else:
@@ -142,6 +152,7 @@ class EventView:
         else:
             st.warning("No hay eventos disponibles para editar.")
 
+    # Método de eliminar un evento
     def eliminar_eventos(self):
         st.header("Eliminar un evento")
         eventos = self.manager.obtener_lista_nom_eventos()
@@ -157,7 +168,7 @@ class EventView:
                     st.error(mensaje)
         else:
             st.warning("No hay eventos disponibles para eliminar.")
-
+    # Metodo de gestion de las boletas
     def venta_boleta(self):
         st.header("Venta Boleta")
         eventos = self.manager.obtener_lista_nom_eventos()
@@ -187,7 +198,7 @@ class EventView:
                 st.success(mensaje_venta)
         else:
             st.warning("No hay eventos disponibles para la venta de boletas.")
-
+    #metodo para gestionar los reportes
     def ver_reportes(self):
         st.header("Reportes")
         eventos = self.manager.obtener_lista_nom_eventos()
@@ -221,7 +232,7 @@ class EventView:
             ing_r_tc = info["boletas_tot_tc_gen"] * evento.precio_gen
             ing_r_td = info["boletas_tot_td_gen"] * evento.precio_gen
             ing_r_tb = info["boletas_tot_tb_gen"] * evento.precio_gen
-
+            # boton que muestra la informacion de ingresos que generaron las boletas
             if st.button("Ventas de boletas"):
                 st.subheader("Reporte de ventas de boletas")
                 tipo_evento = self.manager.determinar_tipo_evento(evento)
@@ -233,7 +244,7 @@ class EventView:
                     st.write("BOLETAS REGULARES: ", bol_reg, " boletas, con ingresos de ", ing_reg, " pesos.")
                     st.write("BOLETAS DE PREVENTA: ", bol_prev, " boletas, con ingresos de ", ing_prev, " pesos.")
                     st.write("BOLETAS DE CORTESIA: ", info["boletas_tot_cortesia"], " boletas.")
-
+            # boton que permite visualizar el reporte financiero
             if st.button("Financiero"):
                 st.subheader("Reporte financiero")
                 tipo_evento = self.manager.determinar_tipo_evento(evento)
@@ -271,7 +282,7 @@ class EventView:
                     st.write("Se distribuyen de la siguiente forma:")
                     for nom, ap in sponsors.items():
                         st.write(f"Sponsor: {nom}, Aporte: {ap}")
-
+            # boton que permite ver el analisis de los datos de los compradores y permite la descarga en un archivo de excel con graficas
             if st.button("Datos de compradores"):
                 st.subheader("Reporte de datos de compradores")
                 st.write("El analisis de datos de compradores arroja la siguiente informacion:")
@@ -287,7 +298,7 @@ class EventView:
                 st.write("La mayoría de compradores provienen de la ciudad: ",
                         compra['ciudad_mas_frecuente']['ciudad'])
                 st.write("Ocurrencias: ", compra['ciudad_mas_frecuente']['ocurrencias'])
-            
+            # boton que permite visualizar un listado con la infromacion de los eventos en los que participa los artistas
             if st.button("Datos por Artistas"):
                 st.subheader("Reporte de Artista")
                 todos_eventos = self.manager.obtener_eventos()
