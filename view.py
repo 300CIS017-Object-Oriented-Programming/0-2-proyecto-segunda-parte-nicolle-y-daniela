@@ -16,7 +16,7 @@ class EventView:
     # Método que ejecuta toda la vista
     def run(self):
 
-        if st.session_state['logged_in'] is None:
+        if st.session_state['logged_in'] == False or st.session_state['logged_in'] != True:
             self.login()
         else:
             st.sidebar.title("Menú")
