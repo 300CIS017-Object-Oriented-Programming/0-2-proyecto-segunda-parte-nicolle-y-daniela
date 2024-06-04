@@ -15,6 +15,7 @@ class EventView:
 
     # Método que ejecuta toda la vista
     def run(self):
+        self.login()
         if st.session_state['logged_in'] == False:
             self.login()
         else:
@@ -42,7 +43,9 @@ class EventView:
         password = st.text_input("Contraseña", type="password")
         if st.button("Iniciar Sesión"):
             if self.manager.iniciar_sesion(username, password):
-                st.success("Inicio de sesión exitoso")
+                if st.session_state['logged_in']:
+                    st.success("Inicio de sesión exitoso")
+                    self.run()
             else:
                 st.error("Nombre de usuario o contraseña incorrectos")
 
