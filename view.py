@@ -43,7 +43,6 @@ class EventView:
         if st.button("Iniciar Sesión"):
             if self.manager.iniciar_sesion(username, password):
                 st.success("Inicio de sesión exitoso")
-                self.run()
             else:
                 st.error("Nombre de usuario o contraseña incorrectos")
 
