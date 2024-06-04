@@ -11,6 +11,7 @@ def main():
 
     # Crear una instancia de la clase Controlador para gestionar la lógica de la aplicación
     manager = Controlador()
+    manager.inicoo()
 
     # Crear una instancia de la clase EventView para manejar la vista de los eventos
     view = EventView(manager)

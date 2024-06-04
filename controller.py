@@ -12,21 +12,22 @@ import plotly.graph_objs as go
 #Clase que se encarga de la funciones principales y relaciona los tipos de eventos, los usuarios y los artistas
 class Controlador:
     #contenedores para guardar datos globales de artistas, eventos y guardar informacion importante de los eventos
-    if 'events' not in st.session_state:
-            st.session_state['events'] = []
-    if 'artistas_por_evento' not in st.session_state:
-        st.session_state['artistas_por_evento'] = {}
-    if 'logged_in' not in st.session_state:
-        st.session_state['logged_in'] = False
-    if 'temp_artistas' not in st.session_state:
-        st.session_state['temp_artistas'] = []
-    if 'aforo' not in st.session_state:
-            st.session_state['aforo'] = 0
-    if 'info_usu' not in st.session_state:
-        st.session_state['info_usu'] = {}
-    if 'sponsors' not in st.session_state:
-        st.session_state['sponsors'] = {}
-    # metodo que se encarga de iniciar sesion
+    def inicoo(self ):
+        if 'events' not in st.session_state:
+                st.session_state['events'] = []
+        if 'artistas_por_evento' not in st.session_state:
+            st.session_state['artistas_por_evento'] = {}
+        if 'logged_in' not in st.session_state:
+            st.session_state['logged_in'] = False
+        if 'temp_artistas' not in st.session_state:
+            st.session_state['temp_artistas'] = []
+        if 'aforo' not in st.session_state:
+                st.session_state['aforo'] = 0
+        if 'info_usu' not in st.session_state:
+            st.session_state['info_usu'] = {}
+        if 'sponsors' not in st.session_state:
+            st.session_state['sponsors'] = {}
+        # metodo que se encarga de iniciar sesion
     def iniciar_sesion(self, username, password):
         # Aquí puedes agregar la lógica para validar el usuario
         # Por ahora, solo validaremos con un usuario y contraseña fijo
