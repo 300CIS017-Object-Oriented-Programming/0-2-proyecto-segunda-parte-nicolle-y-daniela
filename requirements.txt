@@ -1,4 +1,4 @@
 fpdf
 plotly
-xls-writer
+numpy
 xlswriter
