@@ -29,8 +29,6 @@ class EventView:
             self.venta_boleta()
         elif menu == "Ver Reportes":
             self.ver_reportes()
-        if st.sidebar.button("Cerrar sesión"):
-            st.session_state['logged_in'] = False
 
     # Método que permite filtrar los eventos por fecha
     def mostrar_eventos(self):
