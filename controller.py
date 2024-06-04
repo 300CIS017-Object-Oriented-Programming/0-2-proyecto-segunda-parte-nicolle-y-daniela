@@ -1,6 +1,5 @@
 import streamlit as st
 from model import Evento, Bar, Teatro, Filantropo,Artista,Usuario
-import fpdf
 from fpdf import FPDF
 from collections import Counter
 import pandas as pd
