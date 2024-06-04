@@ -12,12 +12,13 @@ def main():
     # Crear una instancia de la clase Controlador para gestionar la lógica de la aplicación
     manager = Controlador()
 
-
+    manager.inicoo()
     # Crear una instancia de la clase EventView para manejar la vista de los eventos
     view = EventView(manager)
 
     # Ejecutar la aplicación
     view.run()
+
 # Verificar si este archivo es el punto de entrada principal
 if __name__ == "__main__":
     # Llamar a la función principal si este archivo es ejecutado directamente
