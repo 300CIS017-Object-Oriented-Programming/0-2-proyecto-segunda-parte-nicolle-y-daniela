@@ -5,6 +5,8 @@ from collections import Counter
 import pandas as pd
 from collections import Counter
 import plotly.express as px
+import sys
+sys.path.append('/home/vscode/.local/lib/python3.11/site-packages')
 import xlsxwriter
 import plotly.graph_objs as go
 #Clase que se encarga de la funciones principales y relaciona los tipos de eventos, los usuarios y los artistas
