@@ -15,25 +15,33 @@ class EventView:
 
     # Método que ejecuta toda la vista
     def run(self):
-        if not st.session_state['logged_in']:
-            self.login()
-        else:
-            st.sidebar.title("Menú")
-            menu = st.sidebar.selectbox("Seleccione una opción", ["Eventos Generales","Crear Evento", "Editar Evento", "Eliminar Evento", "Venta de Boleta", "Ver Reportes"])
-            if menu == "Eventos Generales":
-                self.mostrar_eventos()
-            if menu == "Crear Evento":
-                self.crear_eventos()
-            elif menu == "Editar Evento":
-                self.editar_eventos()
-            elif menu == "Eliminar Evento":
-                self.eliminar_eventos()
-            elif menu == "Venta de Boleta":
-                self.venta_boleta()
-            elif menu == "Ver Reportes":
-                self.ver_reportes()
-            if st.sidebar.button("Cerrar sesión"):
-                st.session_state['logged_in'] = False
+        st.header("Inicio de Sesión")
+        username = st.text_input("Nombre de Usuario")
+        password = st.text_input("Contraseña", type="password")
+        if st.button("Iniciar Sesión"):
+            if self.manager.iniciar_sesion(username, password):
+                st.success("Inicio de sesión exitoso")
+                if not st.session_state['logged_in']:
+                    st.error("algo salio mal")
+                else:
+                    st.sidebar.title("Menú")
+                    menu = st.sidebar.selectbox("Seleccione una opción", ["Eventos Generales","Crear Evento", "Editar Evento", "Eliminar Evento", "Venta de Boleta", "Ver Reportes"])
+                    if menu == "Eventos Generales":
+                        self.mostrar_eventos()
+                    if menu == "Crear Evento":
+                        self.crear_eventos()
+                    elif menu == "Editar Evento":
+                        self.editar_eventos()
+                    elif menu == "Eliminar Evento":
+                        self.eliminar_eventos()
+                    elif menu == "Venta de Boleta":
+                        self.venta_boleta()
+                    elif menu == "Ver Reportes":
+                        self.ver_reportes()
+                    if st.sidebar.button("Cerrar sesión"):
+                        st.session_state['logged_in'] = False
+            else:
+                st.error("Nombre de usuario o contraseña incorrectos")
 
     # Método inicio de sesion
     def login(self):
