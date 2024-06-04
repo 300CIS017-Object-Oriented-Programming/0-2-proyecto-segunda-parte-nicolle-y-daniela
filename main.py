@@ -3,6 +3,7 @@ from controller import Controlador
 from view import EventView
 
 
+
 # Definir la función principal de la aplicación
 def main():
     # Titulo
