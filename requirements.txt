@@ -1,2 +1,4 @@
 fpdf
 plotly
+xls-writer
+xlswriter
