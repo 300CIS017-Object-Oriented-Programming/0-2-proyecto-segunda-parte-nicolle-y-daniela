@@ -18,7 +18,6 @@ def main():
 
     # Ejecutar la aplicación
     view.run()
-    manager.inicoo()
 # Verificar si este archivo es el punto de entrada principal
 if __name__ == "__main__":
     # Llamar a la función principal si este archivo es ejecutado directamente
